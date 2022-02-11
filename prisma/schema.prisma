@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model authors {
+  authors_uid   String    @id @db.Uuid
+  prefix        String?   @db.VarChar(10)
+  first_name    String?   @db.VarChar(50)
+  last_name     String?   @db.VarChar(50)
+  suffix        String?   @db.VarChar(100)
+  date_of_birth DateTime? @db.Date
+  date_of_death DateTime? @db.Date
+  region        String?   @db.VarChar(100)
+  date_added    DateTime  @db.Timestamp(6)
+  quotes        quotes[]
+  tagged        tagged[]
+}
+
+model bible_books {
+  order        Int      @id
+  title_short  String   @unique
+  title_full   String   @unique
+  abbreviation String   @unique
+  category     String
+  otnt         String
+  chapters     Int?
+  quotes       quotes[]
+}
+
+model quotes {
+  quotes_uid     String       @id @db.Uuid
+  authors_uid    String       @db.Uuid
+  quote          String
+  date_added     DateTime     @db.Timestamp(6)
+  century        Int?         @db.SmallInt
+  tag_count      Int?         @db.SmallInt
+  reference_text String?      @db.VarChar(250)
+  pg_num         Int?         @db.SmallInt
+  bible_book     Int?
+  bible_chapter  Int?         @db.SmallInt
+  chapter_verse  Int?         @db.SmallInt
+  authors        authors      @relation(fields: [authors_uid], references: [authors_uid], onDelete: NoAction, onUpdate: NoAction)
+  bible_books    bible_books? @relation(fields: [bible_book], references: [order], onDelete: NoAction, onUpdate: NoAction)
+  tagged         tagged[]
+}
+
+model tagged {
+  id          String   @id @db.Uuid
+  quotes_uid  String   @db.Uuid
+  tags_uid    String   @db.Uuid
+  date_tagged DateTime @db.Timestamp(6)
+  authors_uid String   @db.Uuid
+  authors     authors  @relation(fields: [authors_uid], references: [authors_uid], onDelete: NoAction, onUpdate: NoAction)
+  quotes      quotes   @relation(fields: [quotes_uid], references: [quotes_uid], onDelete: NoAction, onUpdate: NoAction)
+  tags        tags     @relation(fields: [tags_uid], references: [tags_uid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tags {
+  tags_uid      String   @id @db.Uuid
+  title         String   @unique @db.VarChar(150)
+  amount_tagged Int
+  date_added    DateTime @db.Timestamp(6)
+  tagged        tagged[]
+}
